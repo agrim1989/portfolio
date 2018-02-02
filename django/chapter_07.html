@@ -1,0 +1,318 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <title>Django | Chapter 7: Blog app with user accounts</title>
+  <meta name="description" content="Learn how to develop and deploy real, production-level web applications with Python and Django. And explore Django Rest Framework for building modern web APIs.">
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i" rel="stylesheet">
+  <link rel="stylesheet" href="../static/css/main.css">
+  <link rel="canonical" href="https://djangoforbeginners.com/">
+</head>
+<body class="site">
+  <header class="header-home">
+    <div class="container-flex">
+        <h1 class="h1-home">Django 2.0 Tutorial for Beginners</h1>
+
+    </div>
+  </header>
+  <main class="site-content">
+    <div class="container-flex">
+      <article class="post">
+
+  <div class="post-header">
+    <h1 class="post-title" itemprop="name headline">Chapter 7: Blog app with user accounts</h1>
+    <p class="post-meta">
+      Add user accounts and permissions to a Django blog app to support sign up, login, and logout.</p>
+  </div>
+
+  <div class="post-content" itemprop="articleBody">
+    <p>So far we’ve built a working blog application that uses forms, but we’re missing a major piece of most web applications: user authentication.</p>
+
+<p>Implementing proper user authentication is famously hard; there are many security gotchas along the way so you really don’t want to implement this yourself. Fortunately Django comes with a powerful, built-in <a href="https://docs.djangoproject.com/en/2.0/topics/auth/">user authentication system</a> that we can use.</p>
+
+<p>Whenever you create a new project, by default Django installs the <code class="highlighter-rouge">auth</code> app, which provides us with a <a href="https://docs.djangoproject.com/en/2.0/ref/contrib/auth/#django.contrib.auth.models.User">User object</a> containing:</p>
+
+<ul>
+  <li>username</li>
+  <li>password</li>
+  <li>email</li>
+  <li>first_name</li>
+  <li>last_name</li>
+</ul>
+
+<p>We will use this <code class="highlighter-rouge">User</code> object to implement login, logout, and signup in our blog application. Complete source code can be <a href="https://github.com/wsvincent/djangoforbeginners/tree/master/ch7-blog-app-with-users" target="\_blank">found on Github</a>.</p>
+
+<h2 id="login">Login</h2>
+<p>Django provides us with a default view for a login page via <a href="https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.views.LoginView">LoginView</a>. All we need to add are a project-level urlpattern for the auth system, a login template, and a small update to our <code class="highlighter-rouge">settings.py</code> file.</p>
+
+<p>First update the project-level <code class="highlighter-rouge">urls.py</code> file. We’ll place our login and logout pages at the <code class="highlighter-rouge">accounts/</code> URL. This is a one-line addition on the next-to-last line.</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># blog_project/urls.py</span>
+<span class="kn">from</span> <span class="nn">django.contrib</span> <span class="kn">import</span> <span class="n">admin</span>
+<span class="kn">from</span> <span class="nn">django.urls</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span> <span class="n">include</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">path</span><span class="p">(</span><span class="s">'admin/'</span><span class="p">,</span> <span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">urls</span><span class="p">),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s">'accounts/'</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">'django.contrib.auth.urls'</span><span class="p">)),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">'blog.urls'</span><span class="p">)),</span>
+<span class="p">]</span>
+</code></pre>
+</div>
+
+<p>As the <a href="https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.views.LoginView">LoginView</a> documentation notes, by default Django will look within a templates folder called <code class="highlighter-rouge">registration</code> for a file called <code class="highlighter-rouge">login.html</code> for a login form. So we need to create a new directory called <code class="highlighter-rouge">registration</code> and the requisite file within it. From the command line type <code class="highlighter-rouge">Control-C</code> to quit our local server. Then enter the following:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>(blog) $ mkdir templates/registration
+(blog) $ touch templates/registration/login.html
+</code></pre>
+</div>
+
+<p>Now type the following template code for our newly-created file.</p>
+
+<div class="language-html highlighter-rouge"><pre class="highlight"><code><span class="c">&lt;!-- templates/registration/login.html --&gt;</span>
+{% extends 'base.html' %}
+
+{% block content %}
+<span class="nt">&lt;h2&gt;</span>Login<span class="nt">&lt;/h2&gt;</span>
+<span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">"post"</span><span class="nt">&gt;</span>
+  {% csrf_token %}
+  {{ form.as_p }}
+  <span class="nt">&lt;button</span> <span class="na">type=</span><span class="s">"submit"</span><span class="nt">&gt;</span>Login<span class="nt">&lt;/button&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+{% endblock content %}
+</code></pre>
+</div>
+
+<p>We’re using HTML <code class="highlighter-rouge">&lt;form&gt;&lt;/form&gt;</code> tags and specifying the POST method since we’re sending data to the server (we’d use GET if we were requesting data, such as in a search engine form). We add <code class="highlighter-rouge"><span class="p">{</span><span class="err">%</span><span class="w"> </span><span class="err">csrf_token</span><span class="w"> </span><span class="err">%</span><span class="p">}</span></code> for security concerns, namely to prevent a XSS Attack. The form’s contents are outputted between paragraph tags thanks to <code class="highlighter-rouge"><span class="p">{</span><span class="err">{</span><span class="w"> </span><span class="err">form.as_p</span><span class="w"> </span><span class="p">}</span><span class="err">}</span></code> and then we add a “submit” button.</p>
+
+<p>The final step is we need to specify <em>where</em> to redirect the user upon a successful login. We can set this with the <code class="highlighter-rouge">LOGIN_REDIRECT_URL</code> setting. At the bottom of the <code class="highlighter-rouge">settings.py</code> file add the following:</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># settings.py</span>
+<span class="n">LOGIN_REDIRECT_URL</span> <span class="o">=</span> <span class="s">'home'</span>
+</code></pre>
+</div>
+
+<p>Now the user will be redirected to the <code class="highlighter-rouge">'home'</code> template which is our homepage.</p>
+
+<p><strong>We’re actually done at this point!</strong> If you now start up the Django server again with <code class="highlighter-rouge">./manage.py runserver</code> and navigate to our login page at <a href="http://127.0.0.1:8000/accounts/login/">http://127.0.0.1:8000/accounts/login/</a> you’ll see the following.</p>
+
+<p><img src="https://djangoforbeginners.com/assets/images/book/07_login_firststep.png" alt="Login page" /></p>
+
+<p>Upon entering the login info for our superuser account, we are redirected to the homepage. Notice that we didn’t add any <em>view</em> logic or create a database model because the Django auth system provided both for us automatically. Thanks Django!</p>
+
+<h2 id="updated-homepage">Updated homepage</h2>
+<p>Let’s update our <code class="highlighter-rouge">base.html</code> template so we display a message to users whether they are logged in or not. We can use the <a href="https://docs.djangoproject.com/en/2.0/ref/contrib/auth/#django.contrib.auth.models.User.is_authenticated">is_authenticated</a> attribute for this.</p>
+
+<p>For now, we can simply place this code in a prominent position. Later on we can style it more appropriately. Update the <code class="highlighter-rouge">base.html</code> file with new code starting beneath the closing <code class="highlighter-rouge">&lt;/header&gt;</code> tag.</p>
+
+<div class="language-html highlighter-rouge"><pre class="highlight"><code><span class="c">&lt;!-- templates/base.html --&gt;</span>
+...
+<span class="nt">&lt;/header&gt;</span>
+{% if user.is_authenticated %}
+  <span class="nt">&lt;p&gt;</span>Hi {{ user.username }}!<span class="nt">&lt;/p&gt;</span>
+{% else %}
+  <span class="nt">&lt;p&gt;</span>You are not logged in.<span class="nt">&lt;/p&gt;</span>
+  <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'login' %}"</span><span class="nt">&gt;</span>login<span class="nt">&lt;/a&gt;</span>
+{% endif %}
+{% block content %}
+{% endblock content %}
+</code></pre>
+</div>
+
+<p>If the user is logged in we say hello to them by name, if not we provide a link to our newly created login page.</p>
+
+<p><img src="https://djangoforbeginners.com/assets/images/book/07_homepage_login.png" alt="Homepage logged in" /></p>
+
+<p>It worked! My superuser name is <code class="highlighter-rouge">wsv</code> so that’s what I see on the page.</p>
+
+<h2 id="logout-link">Logout link</h2>
+<p>We added template page logic for logged out users but…how do we log out now? We could go into the Admin panel and do it manually, but there’s a better way. Let’s add a logout link instead that redirects to the homepage. Thanks to the Django auth system, this is dead-simple to achieve.</p>
+
+<p>In our <code class="highlighter-rouge">base.html</code> file add a one-line link for logging out.</p>
+
+<div class="language-html highlighter-rouge"><pre class="highlight"><code><span class="c">&lt;!-- templates/base.html--&gt;</span>
+...
+{% if user.is_authenticated %}
+  <span class="nt">&lt;p&gt;</span>Hi {{ user.username }}!<span class="nt">&lt;/p&gt;</span>
+  <span class="nt">&lt;p&gt;&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'logout' %}"</span><span class="nt">&gt;</span>logout<span class="nt">&lt;/a&gt;&lt;/p&gt;</span>
+{% else %}
+...
+</code></pre>
+</div>
+
+<p>That’s all we need to do as the necessary <em>view</em> is provided to us by the Django <code class="highlighter-rouge">auth</code> app. We do need to specify where to redirect a user upon logout though.</p>
+
+<p>Update <code class="highlighter-rouge">settings.py</code> to provide a redirect link which is called, appropriately, <code class="highlighter-rouge">LOGOUT_REDIRECT_URL</code>. We can add it right next to our login redirect so the bottom of the file should look as follows:</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># blog_project/settings.py</span>
+<span class="n">LOGIN_REDIRECT_URL</span> <span class="o">=</span> <span class="s">'home'</span>
+<span class="n">LOGOUT_REDIRECT_URL</span> <span class="o">=</span> <span class="s">'home'</span>
+</code></pre>
+</div>
+
+<p>If you refresh the homepage you’ll see it now has a “logout” link for logged in users.</p>
+
+<p><img src="https://djangoforbeginners.com/assets/images/book/07_homepage_logout_link.png" alt="Homepage logout link " /></p>
+
+<p>And clicking it takes you back to the homepage with a “login” link.</p>
+
+<p><img src="https://djangoforbeginners.com/assets/images/book/07_homepage_logged_out.png" alt="Homepage logged out" /></p>
+
+<p>Go ahead and try logging in and out several times with your user account.</p>
+
+<h2 id="signup">Signup</h2>
+<p>We need to write our own view for a signup page to register new users, but Django provides us with a form class, <a href="https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.forms.UserCreationForm">UserCreationForm</a>, to make things easier. By default it comes with three fields: <code class="highlighter-rouge">username</code>, <code class="highlighter-rouge">password1</code>, and <code class="highlighter-rouge">password2</code>.</p>
+
+<p>There are many ways to organize your code and url structure for a robust user authentication system. Here we will create a dedicated new app, <code class="highlighter-rouge">accounts</code>, for our signup page.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>(blog) $ ./manage.py startapp accounts
+</code></pre>
+</div>
+
+<p>Add the new app to the <code class="highlighter-rouge">INSTALLED_APPS</code> setting in our <code class="highlighter-rouge">settings.py</code> file.</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># blog_project/settings.py</span>
+<span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s">'django.contrib.admin'</span><span class="p">,</span>
+    <span class="s">'django.contrib.auth'</span><span class="p">,</span>
+    <span class="s">'django.contrib.contenttypes'</span><span class="p">,</span>
+    <span class="s">'django.contrib.sessions'</span><span class="p">,</span>
+    <span class="s">'django.contrib.messages'</span><span class="p">,</span>
+    <span class="s">'django.contrib.staticfiles'</span><span class="p">,</span>
+    <span class="s">'blog'</span><span class="p">,</span>
+    <span class="s">'accounts'</span><span class="p">,</span>
+<span class="p">]</span>
+</code></pre>
+</div>
+
+<p>Next add a project-level <code class="highlighter-rouge">url</code> pointing to this new app directly <strong>below</strong> where we include the built-in <code class="highlighter-rouge">auth</code> app.</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># blog_project/urls.py</span>
+<span class="kn">from</span> <span class="nn">django.contrib</span> <span class="kn">import</span> <span class="n">admin</span>
+<span class="kn">from</span> <span class="nn">django.urls</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span> <span class="n">include</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">path</span><span class="p">(</span><span class="s">'admin/'</span><span class="p">,</span> <span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">urls</span><span class="p">),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s">'accounts/'</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">'django.contrib.auth.urls'</span><span class="p">)),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s">'accounts/'</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">'accounts.urls'</span><span class="p">)),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">'blog.urls'</span><span class="p">)),</span>
+<span class="p">]</span>
+</code></pre>
+</div>
+
+<p>The order of our <code class="highlighter-rouge">urls</code> matters here because Django reads this file top-to-bottom. Therefore when we request a <code class="highlighter-rouge">/accounts/signup</code> url, Django will first look in <code class="highlighter-rouge">auth</code>, not find it, and <strong>then</strong> proceed to the <code class="highlighter-rouge">accounts</code> app.</p>
+
+<p>Let’s go ahead and create our <code class="highlighter-rouge">accounts/urls.py</code> file.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>(blog) $ touch accounts/urls.py
+</code></pre>
+</div>
+
+<p>And add the following code:</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># acounts/urls.py</span>
+<span class="kn">from</span> <span class="nn">django.urls</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">views</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">path</span><span class="p">(</span><span class="s">'signup/'</span><span class="p">,</span> <span class="n">views</span><span class="o">.</span><span class="n">SignUpView</span><span class="o">.</span><span class="n">as_view</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s">'signup'</span><span class="p">),</span>
+<span class="p">]</span>
+
+</code></pre>
+</div>
+
+<p>We’re using a not-yet-created view called <code class="highlighter-rouge">SignupView</code> which we already know is class-based since it is capitalized and has the <code class="highlighter-rouge">as_view()</code> suffix. Its path is just <code class="highlighter-rouge">signup/</code> so the overall path will be <code class="highlighter-rouge">accounts/signup/</code>.</p>
+
+<p>Now for the view which uses the built-in <code class="highlighter-rouge">UserCreationForm</code> and generic <code class="highlighter-rouge">CreateView</code>.</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># accounts/views.py</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.forms</span> <span class="kn">import</span> <span class="n">UserCreationForm</span>
+<span class="kn">from</span> <span class="nn">django.urls</span> <span class="kn">import</span> <span class="n">reverse_lazy</span>
+<span class="kn">from</span> <span class="nn">django.views</span> <span class="kn">import</span> <span class="n">generic</span>
+
+
+<span class="k">class</span> <span class="nc">SignUpView</span><span class="p">(</span><span class="n">generic</span><span class="o">.</span><span class="n">CreateView</span><span class="p">):</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">UserCreationForm</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s">'login'</span><span class="p">)</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s">'signup.html'</span>
+</code></pre>
+</div>
+
+<p>We’re subclassing the generic class-based view <code class="highlighter-rouge">CreateView</code> in our <code class="highlighter-rouge">SignUpView</code> class. We specify the use of the built-in <code class="highlighter-rouge">UserCreationForm</code> and the not-yet-created template at <code class="highlighter-rouge">signup.html</code>. And we use <code class="highlighter-rouge">reverse_lazy</code> to redirect the user to the login page upon successful registration.</p>
+
+<p>Why use <code class="highlighter-rouge">reverse_lazy</code> here instead of <code class="highlighter-rouge">reverse</code>? The reason is that for all generic class-based views the urls are not loaded when the file is imported, so we have to use the lazy form of <code class="highlighter-rouge">reverse</code> to load them later when they’re available.</p>
+
+<p>Now let’s add <code class="highlighter-rouge">signup.html</code> to our project-level <code class="highlighter-rouge">templates</code> folder:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>(blog) $ touch templates/signup.html
+</code></pre>
+</div>
+
+<p>Add then populate it with the code below.</p>
+
+<div class="language-html highlighter-rouge"><pre class="highlight"><code><span class="c">&lt;!-- templates/signup.html --&gt;</span>
+{% extends 'base.html' %}
+
+{% block content %}
+<span class="nt">&lt;h2&gt;</span>Sign up<span class="nt">&lt;/h2&gt;</span>
+<span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">"post"</span><span class="nt">&gt;</span>
+  {% csrf_token %}
+  {{ form.as_p }}
+  <span class="nt">&lt;button</span> <span class="na">type=</span><span class="s">"submit"</span><span class="nt">&gt;</span>Sign up<span class="nt">&lt;/button&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+{% endblock %}
+</code></pre>
+</div>
+
+<p>This format is very similar to what we’ve done before. We extend our base template at the top, place our logic between <code class="highlighter-rouge">&lt;form&gt;&lt;/form&gt;</code> tags, use the <code class="highlighter-rouge">csrf_token</code> for security, display the form’s content in paragraph tags with <code class="highlighter-rouge">form.as_p</code>, and include a submit button.</p>
+
+<p>We’re now done! To test it out, navigate to our newly created page <a href="http://127.0.0.1:8000/accounts/signup/">http://127.0.0.1:8000/accounts/signup/</a>.</p>
+
+<p><img src="https://djangoforbeginners.com/assets/images/book/07_signup.png" alt="Django signup page" /></p>
+
+<p>Notice there is a lot of extra text that Django includes by default. We can customize this using something like the built-in <a href="https://docs.djangoproject.com/en/2.0/ref/contrib/messages/">messages framework</a> but for now try out the form.</p>
+
+<p>I’ve created a new user called “william” and upon submission was redirected to the login page. Then after logging in successfully with my new user and password, I was redirected to the homepage with our personalized “Hi username” greeting.</p>
+
+<p><img src="https://djangoforbeginners.com/assets/images/book/07_homepage_new_user.png" alt="Homepage for user wsvincent" /></p>
+
+<p>Our ultimate flow is therefore: <code class="highlighter-rouge">Signup -&gt; Login -&gt; Homepage</code>. And of course we can tweak this however we want. The <code class="highlighter-rouge">SignupView</code> redirects to <code class="highlighter-rouge">login</code> because we set <code class="highlighter-rouge">success_url = reverse_lazy('login')</code>. The <code class="highlighter-rouge">Login</code> page redirects to the homepage because in our <code class="highlighter-rouge">settings.py</code> file we set <code class="highlighter-rouge">LOGIN_REDIRECT_URL = 'home'</code>.</p>
+
+<p>It can seem overwhelming at first to keep track of all the various parts of a Django project. That’s normal. But I promise with time they’ll start to make more sense.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>With very little code, the Django framework has allowed us to create a login, logout, and signup user authentication flow. And under-the-hood it has taken care of the many security gotchas that can crop up if you try to create your own user authentication flow from scratch.</p>
+
+<p>We could improve this blog by adding the “signup” link in the top nav. Perhaps even having some template logic so logged out users see “signup” but logged in users only see “logout”. We’ll implement this and more in the next few chapters as we start our final project of the book: a <em>social messaging</em> app.</p>
+
+<p>Continue on to <a href="chapter_08.html">Chapter 8: Custom User Accounts</a>.</p>
+
+<p><br /></p>
+<hr />
+
+<p><br />
+
+  </div>
+</article>
+    </div>
+  </main>
+    <footer>
+  <div class="container-flex">
+    <div class="nav-wrapper">
+      <div class="footer-left">
+        Copyright &copy; 2018
+      </div>
+      <div class="footer-right">
+        <a href="/">Home</a>
+        <a href="/about/">About</a>
+        <a href="http://eepurl.com/cRL-aP" target="_blank">Newsletter</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    <!-- Google Analytics -->
+
+</body>
+</html>

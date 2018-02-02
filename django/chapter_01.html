@@ -1,0 +1,276 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <title>Django 2.0 Tutorial for Beginners</title>
+  <meta name="description" content="Learn how to develop and deploy real, production-level web applications with Python and Django. And explore Django Rest Framework for building modern web APIs.">
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i" rel="stylesheet">
+<link rel="stylesheet" href="../static/css/main.css">
+  <link rel="canonical" href="https://djangoforbeginners.com/">
+</head>
+<body class="site">
+  <header class="header-home">
+    <div class="container-flex">
+        <h1 class="h1-home">Django 2.0 Tutorial for Beginners</h1>
+
+    </div>
+  </header>
+  <main class="site-content">
+    <div class="container-flex">
+      <article class="post">
+
+  <div class="post-header">
+    <h1 class="post-title" itemprop="name headline">Chapter 1: Initial Set Up</h1>
+    <p class="post-meta">
+      Install Python 3, Django, and virtual environments</p>
+  </div>
+
+  <div class="post-content" itemprop="articleBody">
+    <p>This chapter covers how to properly configure your computer to work on Django projects. We will install the latest versions of Python 3 and Django, install git, and learn about virtual environments.</p>
+
+<h2 id="virtual-environments">Virtual Environments</h2>
+<p>Every Python programmer should use virtual environments to manage their projects. By default when you download Python 3 and Django, they are installed into <strong>the same directory</strong>. Which is a big problem.</p>
+
+<p>Consider the following scenario: last year you started work on <em>ProjectA</em> so you downloaded the latest version of Python at the time (3.4.6) and Django (1.11). Then this year you started a new <em>ProjectB</em> so you downloaded Python and Django again. Except that now Django’s version is 2.0 and Python is 3.6.4.</p>
+
+<p>But since Python and Django are stored by default in the same location on our computer, when you ask for <em>ProjectA</em>’s version of Django you will be using 2.0, not 1.11. The same thing happens with Python. And in fact for all your other software packages installed along the way too. This is clearly unacceptable since using the wrong software versions inevitably leads to bugs, assuming the code even runs at all.</p>
+
+<p>Virtual environments create an isolated container <em>for each project</em>. This means that instead of globally installing Python, Django, and other dependencies for each project, instead you create a new virtual environment. Then all software downloads are placed and run within this virtual environment. And there’s no limit to the number of virtual environments you can have since they’re just directories on your computer.</p>
+
+<p>Historically Python developers used either <code class="highlighter-rouge">virtualenv</code> or <code class="highlighter-rouge">pyenv</code> to configure virtual environments. But in 2017 prominent Python developer Kenneth Reitz released <a href="https://docs.pipenv.org/">Pipenv</a> which is now <a href="https://packaging.python.org/tutorials/managing-dependencies/#managing-dependencies">the officially recommended Python packaging tool</a>.</p>
+
+<p>Pipenv is similar to <code class="highlighter-rouge">npm</code> and <code class="highlighter-rouge">yarn</code> from the Node ecosystem: it creates a <code class="highlighter-rouge">Pipfile</code> containing software dependencies and a <code class="highlighter-rouge">Pipfile.lock</code> for ensuring deterministic builds. “Determinism” means that each and every time you download the software in a new virtual environment, you will have <em>exactly the same configuration</em>. Sebastian McKenzie, the creator of <a href="https://yarnpkg.com/en/">Yarn</a> which first introduced this concept to JavaScript packaging, has a concise blog post <a href="https://yarnpkg.com/blog/2017/05/31/determinism/">explaining what determinism is and why it matters</a>.</p>
+
+<p>The end result is that we will create a new virtual environment with <code class="highlighter-rouge">Pipenv</code> for each new Django Project.</p>
+
+<h2 id="text-editors">Text Editors</h2>
+<p>If you don’t already have a preferred code editor I recommend either <a href="https://code.visualstudio.com/">VSCode</a> or <a href="https://atom.io/">Atom</a>, both of which are free, powerful, and widely-used.</p>
+
+<h2 id="the-command-line">The Command Line</h2>
+<p>The command line is a powerful, text-only view of your computer that we will use extensively throughout this book. If you’re totally new to it, you can find a brief overview and links to further learning resources in <a href="/appendix-a/">Appendix A: The Command Line</a>.</p>
+
+<p>While you <em>can</em> use the default application that comes on your computer, you’ll be better served by installing a dedicated command line application. On a Mac I recommend downloading and using <a href="https://hyper.is/">Hyper</a>. On Windows I recommend using <a href="https://babun.github.io/">Babun</a> rather than the built-in command line program, which is quite difficult to use.</p>
+
+<p>With either Hyper or Babun now installed, open up a new command line console and try typing <code class="highlighter-rouge">echo "hello, world"</code> followed by the Return key as your first command. It should display the text <code class="highlighter-rouge">"hello, world"</code> as output on the ensuing line.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ echo "hello, world"
+"hello, world"
+</code></pre>
+</div>
+
+<p><strong>NOTE</strong>: The <code class="highlighter-rouge">$</code> dollar sign is our command line prompt. All commands in this book are intended to be typed <strong>after</strong> the <code class="highlighter-rouge">$</code> prompt.</p>
+
+<h2 id="install-python-3-on-mac-os-x-click-here-for-windows-or-linux">Install Python 3 on Mac OS X (<a href="#install-python-3-on-windows">click here for Windows</a> or <a href="#install-python-3-on-linux">Linux</a>)</h2>
+<p>Although Python 2 is installed by default on Mac computers, Python 3 is not. You can confirm this by typing <code class="highlighter-rouge">python --version</code> in the command line console and hitting Enter:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ python --version
+Python 2.7.13
+</code></pre>
+</div>
+
+<p>To check if Python 3 is already installed try running the same command using <code class="highlighter-rouge">python3</code> instead of <code class="highlighter-rouge">python</code>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ python3 --version
+</code></pre>
+</div>
+
+<p>If your computer outputs <code class="highlighter-rouge">3.6.x</code> (any version of 3.6 or higher) then skip ahead to <a href="#create-a-virtual-environment">creating a virtual environment</a>.
+However most likely you’ll see an error message since we need to install Python 3 directly.</p>
+
+<p>Our first step is to install Apple’s <a href="https://developer.apple.com/xcode/">Xcode</a> package, so run the following command to install it:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ xcode-select --install
+</code></pre>
+</div>
+
+<p>Click through all the confirmation commands (Xcode is a large program so this might take a while to install depending on your internet connection).</p>
+
+<p>Next, install the package manager <a href="https://brew.sh/">Homebrew</a> via the longish command below:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+</code></pre>
+</div>
+
+<p>To confirm Homebrew installed correctly, run this command:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ brew doctor
+Your system is ready to brew.
+</code></pre>
+</div>
+
+<p>And now to install the latest version of Python, run the following command:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ brew install python3
+</code></pre>
+</div>
+
+<p>Now let’s confirm which version was installed:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ python3 --version
+Python 3.6.3
+</code></pre>
+</div>
+
+<p>To open a Python 3 interactive shell–this lets us run Python commands directly on our computer–simply type <code class="highlighter-rouge">python3</code> from the command line:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ python3
+Python 3.6.3 (default, Oct  4 2017, 06:09:15)
+[GCC 4.2.1 Compatible Apple LLVM 9.0.0 (clang-900.0.37)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt;
+</code></pre>
+</div>
+
+<p>To exit the Python 3 interactive shell at any time type <code class="highlighter-rouge">Control-d</code> (the “Control” and “d” key at the same time).</p>
+
+<p>You can still run Python shells with Python 2 by simply typing <code class="highlighter-rouge">python</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ python
+Python 2.7.13 (default, Dec 18 2016, 07:03:39)
+[GCC 4.2.1 Compatible Apple LLVM 8.0.0 (clang-800.0.42.1)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+</code></pre>
+</div>
+
+<h2 id="install-python-3-on-windows">Install Python 3 on Windows</h2>
+<p>Python is not included by default on Windows, however we can check if any version exists on the system. Open a command-line console by entering <code class="highlighter-rouge">command</code> on the Start Menu. Or you can hold down the SHIFT key and right-click on your desktop, then select <strong>Open Command Window Here.</strong></p>
+
+<p>Type the following command and hit RETURN:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>python --version
+Python 3.6.3
+</code></pre>
+</div>
+
+<p>If you see output like this, Python is already installed. <em>Most likely it will not be!</em></p>
+
+<p>To download Python 3, go to the <a href="https://www.python.org/downloads/">downloads section</a> of the official Python website. Download the installer and make sure to click the <em>Add Python to PATH</em> option, which will let use use <code class="highlighter-rouge">python</code> directly from the command-line. Otherwise we’d have to enter our system’s full path and modify our environment variables manually.</p>
+
+<p>After Python has installed, run the following command in a new command-line console:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>python --version
+Python 3.6.3
+</code></pre>
+</div>
+
+<p>If it works, you’re done!</p>
+
+<h2 id="install-python-3-on-linux">Install Python 3 on Linux</h2>
+<p>Adding Python 3 to a Linux distribution takes a bit more work. Here are recommended recent guides <a href="https://danieleriksson.net/2017/02/08/how-to-install-latest-python-on-centos/">for Centos</a>
+and <a href="https://solarianprogrammer.com/2017/06/30/building-python-ubuntu-wsl-debian/">for Debian</a>. If you need additional help adding Python to your PATH please refer to <a href="https://stackoverflow.com/questions/14637979/how-to-permanently-set-path-on-linux-unix/14638025#14638025">this Stack Overflow answer</a>.</p>
+
+<h2 id="create-a-virtual-environment">Create a Virtual Environment</h2>
+<p>We will use <a href="https://docs.pipenv.org/">Pipenv</a> to create a new virtual environment for each project. But first, we need to install it! We can use <code class="highlighter-rouge">pip3</code> which Homebrew automatically installed for us alongside Python 3.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ pip3 install pipenv
+</code></pre>
+</div>
+
+<h2 id="install-django">Install Django</h2>
+
+<p>To see <code class="highlighter-rouge">Pipenv</code> in action, let’s create a new directory and install Django. First navigate to the Desktop, create a new directory <code class="highlighter-rouge">django</code>, and enter it with <code class="highlighter-rouge">cd</code>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ cd ~/Desktop
+$ mkdir django
+$ cd django
+</code></pre>
+</div>
+
+<p>Now use Pipenv to install Django.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ pipenv install django
+</code></pre>
+</div>
+
+<p>If you look within our directory there are now two new files: <code class="highlighter-rouge">Pipfile</code> and <code class="highlighter-rouge">Pipfile.lock</code>. We have the information we need for a new virtual environment but we have not activated it yet. Let’s do that with <code class="highlighter-rouge">pipenv shell</code>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ pipenv shell
+</code></pre>
+</div>
+
+<p>If successful you’ll see parentheses on your command line with the environment activated. It will take the format of the directory name and random characters. On my computer, I see the below but you will see something slightly different.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>(django-JmZ1NTQw) $
+</code></pre>
+</div>
+
+<p>This means it’s working! Create a new Django project called <code class="highlighter-rouge">test</code> with the following command (don’t forget that period <code class="highlighter-rouge">.</code> at the end).</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>(django-JmZ1NTQw) $ django-admin.py startproject test_project .
+</code></pre>
+</div>
+
+<p>Now let’s confirm everything is working by running Django’s local web server.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>(django-JmZ1NTQw) $ python manage.py runserver
+</code></pre>
+</div>
+
+<p>If you visit <a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a> you should see the following image:</p>
+
+<p><img src="https://djangoforbeginners.com/assets/images/book/02_django_welcome.png" alt="Django welcome page" /></p>
+
+<p>To stop our local server type <code class="highlighter-rouge">Control-c</code>. Then exit our virtual environment using the command <code class="highlighter-rouge">exit</code>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>(django-JmZ1NTQw) $ exit
+</code></pre>
+</div>
+
+<p>We can always reactivate the virtual environment again using <code class="highlighter-rouge">pipenv shell</code> at any time.</p>
+
+<p>We’ll get lots of practice with virtual environments in this book so don’t worry if it’s a little confusing right now. The basic pattern is to install new packages with <code class="highlighter-rouge">pipenv</code>, activate them with <code class="highlighter-rouge">pipenv shell</code>, and then exit when done with <code class="highlighter-rouge">exit</code>.</p>
+
+<h2 id="install-git">Install Git</h2>
+<p>The final step is to install <a href="https://Git-scm.com/">Git</a> which is a <a href="https://en.wikipedia.org/wiki/Version_control">version control system</a>. You can think of it as an extremely powerful version of <em>track changes</em> in Microsoft Word or Google Docs. With Git, you can collaborate with other developers, track all your work via commits, and even revert to any previous version of your code even if you accidentally delete something important! In short, Git is essential to modern software development.</p>
+
+<p>On a Mac, because Homebrew is already installed we can simply type <code class="highlighter-rouge">brew install git</code> on the command line:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ brew install git
+</code></pre>
+</div>
+
+<p>On Windows you should download Git from <a href="https://Git-for-windows.Github.io/">Git for Windows</a>. Click the “Download” button and follow the prompts for installation. Hit “next” on all steps except the fifth one, “Adjusting your PATH environment.” Instead choose the bottom option: “Use Git and optional Unix tools from the Windows Command Prompt.”</p>
+
+<p>Once installed, we need to do a one-time <em>system</em> setup to configure it by declaring the name and email address you want associated with all your Git commits (more on this shortly).</p>
+
+<p>Within the command line console type the following two lines. Make sure to update them so that <code class="highlighter-rouge">Your Name</code> is…your name, and replace <code class="highlighter-rouge"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="631a0c16114d060e020a0f4d0207071106101023061b020e130f064d000c0e">[email&#160;protected]</a></code> with your real email address.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ git config --global user.name "Your Name"
+$ git config --global user.email <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b5ccdac0c79bd0d8d4dcd99bd4d1d1c7d0c6c6f5d0cdd4d8c5d9d09bd6dad8">[email&#160;protected]</a>
+</code></pre>
+</div>
+
+<p>You can always change these configs later if you desire by retyping the same commands with a new name or email address.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>Phew! Nobody really likes configuring a local development environment but fortunately it’s a one-time pain. We have now successfully created a new virtual environment, installed the latest version of Python and Django, and learned how to use <code class="highlighter-rouge">git</code>. Everything is ready for our first Django app.</p>
+
+<p>Continue on to <a href="chapter_02.html">Chapter 2: Hello World app</a>.</p>
+
+  </div>
+</article>
+
+<div id="disqus_thread"></div>
+
+    </div>
+  </main>
+    <footer>
+  <div class="container-flex">
+    <div class="nav-wrapper">
+      <div class="footer-left">
+        Copyright &copy; 2018
+      </div>
+      <div class="footer-right">
+        <a href="/">Home</a>
+        <a href="/about/">About</a>
+        <a href="http://eepurl.com/cRL-aP" target="_blank">Newsletter</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    <!-- Google Analytics -->
+
+</body>
+</html>
