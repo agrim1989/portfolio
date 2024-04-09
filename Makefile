@@ -26,4 +26,4 @@ lint:
 
 run:
 	python app.py
-all: install format run
+all: install format
