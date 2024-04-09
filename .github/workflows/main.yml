@@ -12,6 +12,6 @@ jobs:
     - name: Install dependencies
       run: 
         make install
-    - name: Start server
-      run:
-        make run
+    # - name: Start server
+    #   run:
+    #     make run
