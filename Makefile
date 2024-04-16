@@ -24,12 +24,12 @@ format:
 lint:
 	pylint --disable=R,C *.py
 build: 
-	docker build -t protfolio
+	docker build . -t portfolio/v1
 run:
-	docker run -it -p 8080:8080 portfolio
+	docker run -it -p 8080:8080 portfolio/v1
 
 # venv:
 # 	virtualenv venv
 
 
-all: install format lint 
+all: install format lint build run
