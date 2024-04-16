@@ -28,9 +28,8 @@ build:
 run:
 	docker run -it -p 8080:8080 portfolio
 
-venv:
-	virtualenv venv
+# venv:
+# 	virtualenv venv
 
-run-venv:
-	source venv/bin/activate
-all: venv run-venv install format lint build run
+
+all: install format lint 
