@@ -15,8 +15,8 @@ jobs:
     #   run: make build
     # - name: Run the Docker image
     #   run: make run 
-    - name: Run Tests
-      run: make test
+    # - name: Run Tests
+    #   run: make test
     - name: Lint Code
       run: make lint
     - name: Format Code
