@@ -9,11 +9,15 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: 3.8
-    - name: Install dependencies
-      run: make install
-    - name: Build the Docker image
-      run: make build
-    - name: Run the Docker image
-      run: make run 
-    - name: Run all commands
-      run: make all
+    # - name: Install dependencies
+      # run: make install
+    # - name: Build the Docker image
+    #   run: make build
+    # - name: Run the Docker image
+    #   run: make run 
+    - name: Run Tests
+      run: make test
+    - name: Lint Code
+      run: make lint
+    - name: Format Code
+      run: make format
