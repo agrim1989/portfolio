@@ -21,7 +21,6 @@ def hello_world():
 def contacts():
     return render_template("contact.html")
 
-
 # main driver function
 if __name__ == "__main__":
 
